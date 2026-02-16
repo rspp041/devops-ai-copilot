@@ -1,0 +1,53 @@
+name: AI - Triage Incident
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage:
+    if: startsWith(github.event.comment.body, '/triage')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r tools/requirements-ci.txt
+
+      - name: Gather evidence (demo bundle)
+        run: |
+          mkdir -p /tmp/evidence
+          cp -r tools/sample_evidence/* /tmp/evidence/
+
+      - name: AI triage (OpenAI)
+        env:
+          LLM_PROVIDER: openai
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          python ai/incident_triage.py \
+            --evidence-dir /tmp/evidence \
+            --runbooks-dir infra/runbooks \
+            --out /tmp/triage.md
+
+      - name: Comment findings
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m .github.scripts.comment_pr \
+            --repo "${{ github.repository }}" \
+            --issue-number "${{ github.event.issue.number }}" \
+            --body-file /tmp/triage.md

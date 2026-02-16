@@ -1,0 +1,4 @@
+Incident: HTTP 500 spike on /api/orders
+Start: 2026-02-16T10:12:00Z
+Recent deploy: commit abc123 (10 minutes before spike)
+Symptoms: elevated 5xx, latency increase, pod restarts

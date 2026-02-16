@@ -1,0 +1,76 @@
+name: AI - Generate Tests
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  generate-tests:
+    if: >
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/generate-tests')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r tools/requirements-ci.txt
+          pip install -r apps/sample-service/requirements.txt
+
+      - name: Get PR diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m .github.scripts.github_context --mode pr-diff \
+            --repo "${{ github.repository }}" \
+            --issue-number "${{ github.event.issue.number }}" \
+            --out /tmp/pr.diff
+
+      - name: Generate tests via AI (OpenAI)
+        env:
+          LLM_PROVIDER: openai
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          python ai/generate_tests.py \
+            --diff /tmp/pr.diff \
+            --repo-root . \
+            --service apps/sample-service \
+            --out-dir /tmp/ai-tests
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+      - name: Commit changes
+        run: |
+          git config user.name "devops-ai-copilot"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/sample-service/tests || true
+          git add apps/sample-service/AI_TEST_REPORT.md || true
+          git commit -m "chore(ai): add generated tests" || echo "No changes to commit"
+          git push || true
+
+      - name: Comment back on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m .github.scripts.comment_pr \
+            --repo "${{ github.repository }}" \
+            --issue-number "${{ github.event.issue.number }}" \
+            --body-file /tmp/ai-tests/REPORT.md

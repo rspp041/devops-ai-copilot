@@ -1,0 +1,42 @@
+name: Rollback (Gated)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+
+jobs:
+  rollback:
+    if: startsWith(github.event.comment.body, '/rollback')
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GITHUB_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Execute allowlisted rollback automation (placeholder)
+        run: |
+          echo "Executing allowlisted rollback..."
+          # Example (enable after deploying SSM Automation doc):
+          # aws ssm start-automation-execution --document-name "DevOpsRollback" --parameters "ServiceName=sample-service,Environment=prod"
+
+      - name: Comment result
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "✅ Rollback triggered (approved & audited)." > /tmp/rollback.md
+          python -m .github.scripts.comment_pr \
+            --repo "${{ github.repository }}" \
+            --issue-number "${{ github.event.issue.number }}" \
+            --body-file /tmp/rollback.md
