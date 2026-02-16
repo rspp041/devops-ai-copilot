@@ -59,7 +59,7 @@ Add a comment on a PR or issue:
 
 ---
 
-## Guardrails (what interviewers look for)
+## Guardrails
 - Suggest-first, execute-only-after-approval (production)
 - Allowlisted automation actions
 - Least privilege via GitHub OIDC -> AWS IAM role
