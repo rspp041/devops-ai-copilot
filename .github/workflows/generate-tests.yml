@@ -11,8 +11,7 @@ permissions:
 
 jobs:
   generate-tests:
-    if: >
-      if: startsWith(github.event.comment.body, '/generate-tests')
+    if: ${{ github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/generate-tests') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +20,7 @@ jobs:
         run: |
           echo "❌ /generate-tests must be commented on a Pull Request (PR), not a normal Issue."
           exit 1
-          
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
