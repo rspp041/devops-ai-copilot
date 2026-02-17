@@ -47,7 +47,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m .github.scripts.comment_pr \
-            --repo "${{ github.repository }}" \
-            --issue-number "${{ github.event.issue.number }}" \
-            --body-file /tmp/triage.md
+          python .github/scripts/comment_pr.py \
+          --repo "${{ github.repository }}" \
+          --issue-number "${{ github.event.issue.number }}" \
+          --body-file /tmp/triage.md
