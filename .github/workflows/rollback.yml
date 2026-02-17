@@ -36,7 +36,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "✅ Rollback triggered (approved & audited)." > /tmp/rollback.md
-          python -m .github.scripts.comment_pr \
+          python .github/scripts/comment_pr.py \
             --repo "${{ github.repository }}" \
             --issue-number "${{ github.event.issue.number }}" \
             --body-file /tmp/rollback.md
