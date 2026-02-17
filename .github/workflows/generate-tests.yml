@@ -40,7 +40,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m .github.scripts.github_context --mode pr-diff \
+          python .github/scripts/github_context.py --mode pr-diff \
             --repo "${{ github.repository }}" \
             --issue-number "${{ github.event.issue.number }}" \
             --out /tmp/pr.diff
@@ -74,7 +74,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m .github.scripts.comment_pr \
+          python .github/scripts/comment_pr.py \
             --repo "${{ github.repository }}" \
             --issue-number "${{ github.event.issue.number }}" \
             --body-file /tmp/ai-tests/REPORT.md
