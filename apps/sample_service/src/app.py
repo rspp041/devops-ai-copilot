@@ -1,6 +1,6 @@
 def add(a: int, b: int) -> int:
     """Simple function used for test generation demos."""
-    return a + b
+    return a + b"
 
 def safe_divide(a: float, b: float) -> float:
     """Division with a clear error on divide-by-zero."""
