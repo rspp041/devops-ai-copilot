@@ -78,3 +78,17 @@ jobs:
             --repo "${{ github.repository }}" \
             --issue-number "${{ github.event.issue.number }}" \
             --body-file /tmp/ai-tests/REPORT.md
+      - name: Debug event
+        run: |
+          echo "Event path: $GITHUB_EVENT_PATH"
+          python - <<'PY'
+          import json, os
+          data = json.load(open(os.environ["GITHUB_EVENT_PATH"]))
+          print("comment.body =", repr(data.get("comment", {}).get("body")))
+          issue = data.get("issue", {})
+          print("issue.number =", issue.get("number"))
+          print("issue.pull_request exists? =", "pull_request" in issue)
+          print("issue.html_url =", issue.get("html_url"))
+          pr = issue.get("pull_request", {})
+          print("pull_request.url =", pr.get("url"))
+          PY
